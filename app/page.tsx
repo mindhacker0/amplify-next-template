@@ -18,6 +18,7 @@ const client = generateClient<Schema>();
 export default function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [curGroupId,setCurGroupId] = useState<string>("");
+  const [curGroupName,setCurGroupName] = useState<string>("");
   function listTodos() {
     client.models.Todo.observeQuery({filter:{groupId:{eq:curGroupId}}}).subscribe({
       next: (data) => setTodos([...data.items]),
@@ -45,10 +46,11 @@ export default function App() {
         <div style={{width:"300px",padding: "20px"}}>
           <UserInfo />
           <CreateGroup />
-          <GroupList setCurGroupId={setCurGroupId}/>
+          <GroupList setCurGroupId={setCurGroupId} setCurGroupName={setCurGroupName}/>
         </div>
         {/* right bar */}
         <div style={{borderLeft:"1px solid #fff",flex:"1 1 0%",padding: "20px"}}>
+          <h2><span>{curGroupName}</span></h2>
           <button onClick={createTodo}>+ new</button>
           <ul>
             {todos.map((todo) => (
