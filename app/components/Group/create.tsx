@@ -12,11 +12,16 @@ const CreateGroup:FC = ()=>{
     const { user } = useAuthenticator();
     const handleJoin = async()=>{//create group
         let groupId:string;
+        await client.mutations.addUserToGroup({
+            groupName:groupName,
+            userId:user.userId
+        });
         const group = await client.models.Group.list({filter:{name:{eq:groupName}}});//group exist?
         console.log(client,groupName,group)
         if(group.data.length === 0){
            const createGroup = await client.models.Group.create({
-                name: groupName
+                name: groupName,
+                group: groupName
             });
             console.log(createGroup)
             groupId = createGroup.data!.id;

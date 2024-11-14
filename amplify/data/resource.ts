@@ -1,4 +1,5 @@
 import { type ClientSchema, a, defineData, defineFunction } from "@aws-amplify/backend";
+import { addUserToGroup } from "./add-user-to-group/resource";
 
 const getGroupByNameHandler = defineFunction({
   entry: './group-handler/handler.ts'
@@ -20,9 +21,10 @@ const schema = a.schema({
     .authorization((allow) => [allow.publicApiKey()]),
   Group: a.model({
     name: a.string().required(),
-    todos: a.hasMany('Todo', 'groupId')
+    todos: a.hasMany('Todo', 'groupId'),
+    group: a.string()
   })
-  .authorization((allow) => [allow.publicApiKey()]),
+  .authorization((allow) => [allow.groupDefinedIn('group')]),
   GroupUserRelation: a.model({
     groupId: a.id().required(),
     userId: a.id().required()
@@ -35,6 +37,15 @@ const schema = a.schema({
   .returns(a.ref("Group"))
   .authorization(allow => [allow.publicApiKey()])
   .handler(a.handler.function(getGroupByNameHandler)),
+  addUserToGroup: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+      groupName: a.string().required(),
+    })
+    .authorization((allow) => [allow.group("ADMINS")])
+    .handler(a.handler.function(addUserToGroup))
+    .returns(a.json())
   
 });
 
