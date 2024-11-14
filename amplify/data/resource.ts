@@ -1,5 +1,8 @@
-import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { type ClientSchema, a, defineData, defineFunction } from "@aws-amplify/backend";
 
+const getGroupByNameHandler = defineFunction({
+  entry: './group-handler/handler.ts'
+})
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
 adding a new "isDone" field as a boolean. The authorization rule below
@@ -9,9 +12,30 @@ specifies that any user authenticated via an API key can "create", "read",
 const schema = a.schema({
   Todo: a
     .model({
+      groupId: a.id().required(),
+      group: a.belongsTo('Group', 'groupId'),
       content: a.string(),
+      isDone: a.boolean()
     })
     .authorization((allow) => [allow.publicApiKey()]),
+  Group: a.model({
+    name: a.string().required(),
+    todos: a.hasMany('Todo', 'groupId')
+  })
+  .authorization((allow) => [allow.publicApiKey()]),
+  GroupUserRelation: a.model({
+    groupId: a.id().required(),
+    userId: a.id().required()
+  })
+  .identifier(["groupId","userId"])
+  .authorization((allow) => [allow.publicApiKey()]),
+  getGroupByName: a
+  .query()
+  .arguments({name:a.string()})
+  .returns(a.ref("Group"))
+  .authorization(allow => [allow.publicApiKey()])
+  .handler(a.handler.function(getGroupByNameHandler)),
+  
 });
 
 export type Schema = ClientSchema<typeof schema>;
